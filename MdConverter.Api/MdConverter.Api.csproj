@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\MdConverter.Application\MdConverter.Application.csproj" />
       <ProjectReference Include="..\MdConverter.DataAccess\MdConverter.DataAccess.csproj" />
     </ItemGroup>
 

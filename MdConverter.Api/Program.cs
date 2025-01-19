@@ -1,4 +1,7 @@
+using MdConverter.Application.Services;
+using MdConverter.Core.Abstractions;
 using MdConverter.DataAccess;
+using MdConverter.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace MdConverter.Api;
@@ -17,6 +20,9 @@ public class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddDbContext<MdConverterDbContext>(
             options => options.UseNpgsql(builder.Configuration.GetConnectionString("MdConverterDbContext")));
+        builder.Services.AddScoped<IUsersService, UsersService>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddControllers();
 
         var app = builder.Build();
 
@@ -28,6 +34,7 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+        app.MapControllers();
 
         app.Run();
     }
