@@ -1,4 +1,5 @@
-using MdConverter.Core.Abstractions;
+
+using MdConverter.Core.Abstractions.Repositories;
 using MdConverter.Core.Models;
 using MdConverter.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;

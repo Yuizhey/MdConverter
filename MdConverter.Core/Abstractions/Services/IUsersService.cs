@@ -1,6 +1,6 @@
 using MdConverter.Core.Models;
 
-namespace MdConverter.Application.Services;
+namespace MdConverter.Core.Abstractions.Services;
 
 public interface IUsersService
 {

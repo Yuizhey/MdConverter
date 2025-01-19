@@ -1,6 +1,6 @@
 using MdConverter.Core.Models;
 
-namespace MdConverter.Core.Abstractions;
+namespace MdConverter.Core.Abstractions.Repositories;
 
 public interface IUserRepository
 {

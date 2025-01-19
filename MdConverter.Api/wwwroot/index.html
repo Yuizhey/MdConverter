@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Renderer</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<h1>Markdown Renderer</h1>
+<form id="markdownForm">
+    <label for="markdownText">Введите Markdown:</label><br>
+    <textarea id="markdownText" rows="10" cols="50"></textarea><br>
+    <button type="submit">Рендерить</button>
+</form>
+
+<h3>Результат:</h3>
+<div id="renderedHtml" style="border: 1px solid #ccc; padding: 10px;"></div>
+
+<script src="/js/Markdown.js"></script>
+</body>
+</html>

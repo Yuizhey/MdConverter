@@ -1,5 +1,6 @@
 using MdConverter.Application.Services;
-using MdConverter.Core.Abstractions;
+using MdConverter.Core.Abstractions.Repositories;
+using MdConverter.Core.Abstractions.Services;
 using MdConverter.DataAccess;
 using MdConverter.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ public class Program
         builder.Services.AddScoped<IUsersService, UsersService>();
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddControllers();
+        
 
         var app = builder.Build();
 
@@ -35,6 +37,7 @@ public class Program
 
         app.UseHttpsRedirection();
         app.MapControllers();
+        app.UseStaticFiles();
 
         app.Run();
     }

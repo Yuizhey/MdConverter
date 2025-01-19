@@ -1,4 +1,6 @@
-using MdConverter.Core.Abstractions;
+
+using MdConverter.Core.Abstractions.Repositories;
+using MdConverter.Core.Abstractions.Services;
 using MdConverter.Core.Models;
 
 namespace MdConverter.Application.Services;

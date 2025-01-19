@@ -1,8 +1,6 @@
 using MdConverter.Api.RequestModels;
 using MdConverter.Api.ResponseModels;
-using MdConverter.Application.Services;
-using MdConverter.Core.Abstractions;
-using MdConverter.Core.Models;
+using MdConverter.Core.Abstractions.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MdConverter.Api.Controllers;
@@ -47,7 +45,7 @@ public class UsersController : ControllerBase
         var (user, error) = Core.Models.User.Create(
             Guid.NewGuid(),
             userRequest.name,
-            userRequest.passwordHash);
+            userRequest.password);
         if (!string.IsNullOrEmpty(error))
         {
             return BadRequest(error);
@@ -61,7 +59,7 @@ public class UsersController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<Guid>> UpdateUser(Guid id, [FromBody] UserRequest userRequest)
     {
-        var userId = await usersService.UpdateUser(id,userRequest.name,userRequest.passwordHash);
+        var userId = await usersService.UpdateUser(id,userRequest.name,userRequest.password);
         return Ok(userId);
     }
     
