@@ -2,8 +2,8 @@ namespace MdConverter.Core.Models;
 
 public class User
 {
-    public const  int MAX_PARAMETER_LENGTH = 30;
-    public const int MIN_PARAMETER_LENGTH = 3;
+    public const  int MAX_NAME_LENGTH = 30;
+    public const int MIN_NAME_LENGTH = 3;
     private User(Guid id, string name, string passwordHash)
     {
         Id = id;
@@ -17,7 +17,7 @@ public class User
     public static (User user, string error) Create(Guid id, string name, string passwordHash)
     {
         var error = string.Empty;
-        if (string.IsNullOrWhiteSpace(name) || name.Length > MAX_PARAMETER_LENGTH || name.Length < MIN_PARAMETER_LENGTH)
+        if (string.IsNullOrWhiteSpace(name) || name.Length > MAX_NAME_LENGTH || name.Length < MIN_NAME_LENGTH)
         {
             error = "Name must be between 3 and 30 characters";
         }

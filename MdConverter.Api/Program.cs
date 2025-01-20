@@ -1,3 +1,4 @@
+using MdConverter.Application;
 using MdConverter.Application.Services;
 using MdConverter.Core.Abstractions.Repositories;
 using MdConverter.Core.Abstractions.Services;
@@ -23,7 +24,11 @@ public class Program
             options => options.UseNpgsql(builder.Configuration.GetConnectionString("MdConverterDbContext")));
         builder.Services.AddScoped<IUsersService, UsersService>();
         builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IAccountService, AccountService>();
+        builder.Services.AddScoped<JwtService>();
+        builder.Services.Configure<AuthSettings>(builder.Configuration.GetSection("AuthSettings"));
         builder.Services.AddControllers();
+        builder.Services.AddAuth(builder.Configuration);
         
 
         var app = builder.Build();
@@ -38,6 +43,8 @@ public class Program
         app.UseHttpsRedirection();
         app.MapControllers();
         app.UseStaticFiles();
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.Run();
     }

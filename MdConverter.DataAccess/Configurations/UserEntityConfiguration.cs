@@ -11,7 +11,7 @@ public class UserEntityConfiguration : IEntityTypeConfiguration<UserEntity>
     {
         builder.HasKey(i => i.Id);
         builder.Property(i => i.Id).IsRequired();
-        builder.Property(i => i.Name).IsRequired().HasMaxLength(User.MAX_PARAMETER_LENGTH);
+        builder.Property(i => i.Name).IsRequired().HasMaxLength(User.MAX_NAME_LENGTH);
         builder.Property(i => i.PasswordHash).IsRequired();
     }
 }

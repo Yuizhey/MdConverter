@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace MdConverter.Api.Controllers;
 
 [ApiController]
-[Route("api/markdown")]
+[Route("[controller]/[action]")]
 public class MarkDownController : ControllerBase
 {
-    [HttpPost("render")]
+    [HttpPost]
     public IActionResult Render([FromBody] MarkdownRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.MarkdownText))
