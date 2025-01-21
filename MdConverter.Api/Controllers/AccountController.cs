@@ -1,3 +1,4 @@
+using MdConverter.Api.Filters;
 using MdConverter.Api.RequestModels;
 using MdConverter.Application.Services;
 using MdConverter.Core.Abstractions.Services;
@@ -47,7 +48,8 @@ public class AccountController : ControllerBase
         return Ok(token);
     }
 
-    [Authorize]
+    
+    [MyAuthorizeFilter]
     [HttpGet]
     public async Task<IActionResult> Test()
     {
