@@ -47,6 +47,22 @@ public class AccountController : ControllerBase
         HttpContext.Response.Cookies.Append("token", token);
         return Ok(token);
     }
+    
+    [HttpPost]
+    [MyAuthorizeFilter]
+    public IActionResult Logout()
+    {
+        if (!HttpContext.Request.Cookies.ContainsKey("token"))
+        {
+            return BadRequest(new { message = "Token not found" });
+        }
+
+        // Удаляем токен из cookies
+        HttpContext.Response.Cookies.Delete("token");
+
+        return Ok(new { message = "Successfully logged out" });
+    }
+
 
     
     [MyAuthorizeFilter]

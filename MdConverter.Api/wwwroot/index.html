@@ -4,19 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Renderer</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <h1>Markdown Renderer</h1>
-<form id="markdownForm">
-    <label for="markdownText">Введите Markdown:</label><br>
-    <textarea id="markdownText" rows="10" cols="50"></textarea><br>
-    <button type="submit">Рендерить</button>
-</form>
 
-<h3>Результат:</h3>
-<div id="renderedHtml" style="border: 1px solid #ccc; padding: 10px;"></div>
+<div class="button-container">
+    <button id="loginButton" onclick="location.href='login.html'">Войти</button>
+    <button id="registerButton" onclick="location.href='Register.html'">Зарегистрироваться</button>
+    <button id="logoutButton" disabled>Выйти</button>
+</div>
+
+<div class="markdown-container">
+    <textarea id="markdownText" placeholder="Введите ваш Markdown здесь..."></textarea>
+    <button id="convertButton">Конвертировать</button>
+    <div id="renderedHtml">Результат отрендеренного Markdown будет здесь...</div>
+</div>
 
 <script src="/js/Markdown.js"></script>
+<script src="/js/AuthorizeCheck.js"></script>
 </body>
 </html>

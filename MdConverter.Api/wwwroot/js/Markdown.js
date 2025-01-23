@@ -4,7 +4,7 @@ document.getElementById('markdownForm').addEventListener('submit', async functio
     const markdownText = document.getElementById('markdownText').value;
 
     try {
-        const response = await fetch('/api/markdown/render', {
+        const response = await fetch('/MarkDown/Render', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ markdownText })
