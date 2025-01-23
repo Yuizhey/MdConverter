@@ -63,6 +63,7 @@ public class UserRepository : IUserRepository
     public async Task<Guid> DeleteUser(Guid id)
     {
         await context.Users.Where(i => i.Id == id).ExecuteDeleteAsync();
+        await context.SaveChangesAsync();
         return id;
     }
 }

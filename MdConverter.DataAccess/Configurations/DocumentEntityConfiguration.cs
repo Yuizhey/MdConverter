@@ -12,7 +12,6 @@ public class DocumentEntityConfiguration : IEntityTypeConfiguration<DocumentEnti
         builder.HasKey(i => i.Id);
         builder.Property(i => i.Id).IsRequired();
         builder.Property(i => i.Name).IsRequired().HasMaxLength(Document.MAX_NAME_LENGTH);
-        builder.Property(i=>i.Url).IsRequired();
         builder.Property(i=> i.UsertId).IsRequired();
     }
 }

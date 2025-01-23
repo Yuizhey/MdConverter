@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace MdConverter.Application.Services;
 
-
-
 public class AccountService : IAccountService
 {
     private readonly IUserRepository userRepository;
