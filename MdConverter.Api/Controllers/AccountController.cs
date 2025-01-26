@@ -45,7 +45,7 @@ public class AccountController : ControllerBase
         }
         var token = await accountService.Login(user.Name, user.PasswordHash);
         HttpContext.Response.Cookies.Append("token", token);
-        return Ok(token);
+        return Ok(new {token});
     }
     
     [HttpPost]

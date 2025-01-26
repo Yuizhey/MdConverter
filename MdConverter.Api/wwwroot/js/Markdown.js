@@ -1,4 +1,4 @@
-document.getElementById('markdownForm').addEventListener('submit', async function (event) {
+document.getElementById('convertButton').addEventListener('click', async function (event) {
     event.preventDefault();
     
     const markdownText = document.getElementById('markdownText').value;
