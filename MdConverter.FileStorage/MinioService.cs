@@ -1,4 +1,5 @@
 using MdConverter.Application;
+using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 
@@ -9,9 +10,9 @@ public class MinioService
         private readonly IMinioClient _minioClient;
         private readonly MinioSettings _minioSettings;
 
-        public MinioService(MinioSettings minioSettings)
+        public MinioService(IOptions<MinioSettings> minioSettings)
         {
-            _minioSettings = minioSettings;
+            _minioSettings = minioSettings.Value;
             _minioClient = new MinioClient()
                 .WithEndpoint(_minioSettings.Endpoint)
                 .WithCredentials(_minioSettings.AccessKey, _minioSettings.SecretKey);

@@ -1,9 +1,11 @@
+using System.Text;
 using MdConverter.Api.Filters;
 using MdConverter.Api.RequestModels;
 using MdConverter.Api.ResponseModels;
 using MdConverter.Application.Services;
 using MdConverter.Core.Abstractions.Services;
 using MdConverter.Core.Models;
+using MdConverter.FileStorage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,11 +17,13 @@ public class DocumentController : ControllerBase
 {
     private readonly JwtService jwtService;
     private readonly IDocumentService documentService;
+    private readonly MinioService minioService;
 
-    public DocumentController(JwtService jwtService, IDocumentService documentService)
+    public DocumentController(JwtService jwtService, IDocumentService documentService, MinioService minioService)
     {
         this.jwtService = jwtService;
         this.documentService = documentService;
+        this.minioService = minioService;
     }
 
     [HttpGet]// Получение документов пользователя по имени пользователя (из токена)
@@ -55,26 +59,58 @@ public class DocumentController : ControllerBase
         }
     }
     
-    [MyAuthorizeFilter]
     [HttpPost]
-    public async Task<ActionResult<Guid>> CreateUser([FromBody]DocumentRequest userRequest)
-    {
-        var (document, error) = Document.Create(Guid.NewGuid(), userRequest.name, userRequest.userName);
-        if (!string.IsNullOrEmpty(error))
+        [Authorize] // Требуется авторизация для выполнения действия
+        public async Task<ActionResult<Guid>> CreateDocument([FromBody] DocumentRequest userRequest)
         {
-            return BadRequest(error);
+            // Извлекаем имя пользователя из токена
+            var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized("Token is missing.");
+            }
+
+            var userName = jwtService.GetUserNameFromToken(token);
+            if (string.IsNullOrEmpty(userName))
+            {
+                return Unauthorized("Invalid token.");
+            }
+
+            // Создание документа
+            var (document, error) = Document.Create(Guid.NewGuid(), userRequest.Name, userName);
+            if (!string.IsNullOrEmpty(error))
+            {
+                return BadRequest(error);
+            }
+
+            // Сохранение файла на Minio
+            var fileName = $"{userName}/{userRequest.Name}.md"; // Используем имя документа для создания пути
+            var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(userRequest.MarkdownText));
+            await minioService.UploadFileAsync(userName, fileName, fileStream);
+
+            // Сохраняем информацию о документе в базе данных
+            var userId = await documentService.CreateDocument(document);
+
+            return Ok(userId);
         }
-        
-        var userId = await documentService.CreateDocument(document);
-        
-        return Ok(userId);
-    }
-    
-    [MyAuthorizeFilter]
-    [HttpDelete]
-    public async Task<ActionResult<Guid>> DeleteDocument(Guid documentId)
-    {
-        var document_id = await documentService.DeleteDocument(documentId);
-        return Ok(document_id);
-    }
+
+        // Удаление документа
+        [HttpDelete]
+        [Authorize] // Требуется авторизация для выполнения действия
+        public async Task<ActionResult<Guid>> DeleteDocument(Guid documentId)
+        {
+            var document = await documentService.GetDocumentById(documentId);
+            if (document == null)
+            {
+                return NotFound("Document not found.");
+            }
+
+            // Удаляем файл из Minio
+            await minioService.DeleteFileAsync(document.UserName, document.Name);
+
+            // Удаляем документ из базы данных
+            var deletedDocumentId = await documentService.DeleteDocument(documentId);
+
+            return Ok(deletedDocumentId);
+        }
 }

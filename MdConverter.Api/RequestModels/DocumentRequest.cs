@@ -2,6 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MdConverter.Api.RequestModels;
 
-public record DocumentRequest(
-    [Required] string name,
-    [Required] string userName);
+public class DocumentRequest
+{
+    public string Name { get; set; } // Название документа
+    public string MarkdownText { get; set; } // Текст Markdown
+}

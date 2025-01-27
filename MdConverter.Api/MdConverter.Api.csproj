@@ -21,6 +21,7 @@
     <ItemGroup>
       <ProjectReference Include="..\MdConverter.Application\MdConverter.Application.csproj" />
       <ProjectReference Include="..\MdConverter.DataAccess\MdConverter.DataAccess.csproj" />
+      <ProjectReference Include="..\MdConverter.FileStorage\MdConverter.FileStorage.csproj" />
     </ItemGroup>
 
 </Project>

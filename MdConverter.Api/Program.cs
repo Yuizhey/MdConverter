@@ -4,6 +4,7 @@ using MdConverter.Core.Abstractions.Repositories;
 using MdConverter.Core.Abstractions.Services;
 using MdConverter.DataAccess;
 using MdConverter.DataAccess.Repositories;
+using MdConverter.FileStorage;
 using Microsoft.EntityFrameworkCore;
 
 namespace MdConverter.Api;
@@ -29,6 +30,7 @@ public class Program
         builder.Services.AddScoped<JwtService>();
         builder.Services.Configure<AuthSettings>(builder.Configuration.GetSection("AuthSettings"));
         builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
+        builder.Services.AddSingleton<MinioService>(); 
         builder.Services.AddControllers();
         builder.Services.AddAuth(builder.Configuration);
         

@@ -28,6 +28,13 @@
         <div class="right-column">
             <button id="getDocumentsButton">Получить документы</button>
             <ul id="documentsList"></ul>
+
+            <!-- Поле для ввода названия документа -->
+            <label for="documentName">Введите название для документа:</label>
+            <input type="text" id="documentName" placeholder="Введите название документа...">
+
+            <!-- Кнопка для сохранения и скачивания -->
+            <button id="saveButton" class="secondary-button">Сохранить</button>
             <button id="downloadButton" class="secondary-button">Скачать HTML</button>
             <button id="openInNewWindowButton" class="secondary-button">Открыть в новом окне</button>
         </div>
@@ -92,12 +99,16 @@
 
     document.getElementById('downloadButton').addEventListener('click', function() {
         const htmlContent = document.getElementById('renderedHtml').value;
+        const documentName = document.getElementById('documentName').value || "renderedMarkdown"; // Берем имя из поля или по умолчанию "renderedMarkdown"
+
+        // Создаем файл для скачивания с указанным именем
         const blob = new Blob([htmlContent], { type: 'text/html' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = 'renderedMarkdown.html';
+        link.download = `${documentName}.html`; // Устанавливаем название файла
         link.click();
     });
+
     document.getElementById('openInNewWindowButton').addEventListener('click', function() {
         const htmlContent = document.getElementById('renderedHtml').value;
 
@@ -122,6 +133,42 @@
         // Закрываем документ нового окна, чтобы он отобразился корректно
         newWindow.document.close();
     });
+
+    document.getElementById('saveButton').addEventListener('click', async function () {
+        const markdownText = document.getElementById('markdownText').value; // Получаем текст markdown
+        const fileName = document.getElementById('documentName').value || "renderedMarkdown"; // Берем имя из поля или по умолчанию "renderedMarkdown"
+
+        if (!markdownText) {
+            alert("Пожалуйста, введите текст Markdown.");
+            return;
+        }
+
+        try {
+            const token = document.cookie.split('; ').find(row => row.startsWith('token')).split('=')[1];
+
+            const response = await fetch('/Document/CreateDocument', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    Name: fileName,
+                    MarkdownText: markdownText
+                })
+            });
+
+            if (response.ok) {
+                alert('Документ успешно сохранен!');
+            } else {
+                alert('Ошибка при сохранении документа');
+            }
+        } catch (error) {
+            console.error('Ошибка при сохранении документа:', error);
+            alert('Произошла ошибка при сохранении документа.');
+        }
+    });
+
 </script>
 </body>
 </html>
