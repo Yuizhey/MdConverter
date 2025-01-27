@@ -87,17 +87,11 @@
                     const li = document.createElement('li');
                     li.textContent = doc.name;
 
-                    // Создаем кнопку удаления
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Удалить';
-                    deleteButton.style.marginLeft = '10px';
-                    deleteButton.addEventListener('click', async () => {
-                        if (confirm(`Вы уверены, что хотите удалить документ "${doc.name}"?`)) {
-                            await deleteDocument(doc.id); // Удаляем документ
-                        }
+                    // Добавляем обработчик клика для получения содержимого
+                    li.addEventListener('click', async () => {
+                        await loadDocumentContent(doc.name);
                     });
 
-                    li.appendChild(deleteButton); // Добавляем кнопку к элементу списка
                     list.appendChild(li); // Добавляем элемент в список
                 });
             } else {
@@ -108,6 +102,32 @@
             alert('Произошла ошибка при загрузке документов.');
         }
     });
+
+    async function loadDocumentContent(documentName) {
+        try {
+            const token = document.cookie.split('; ').find(row => row.startsWith('token')).split('=')[1];
+
+            const response = await fetch(`/Document/GetDocumentContent?documentName=${documentName}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const { content } = await response.json();
+                document.getElementById('markdownText').value = content;
+                document.getElementById('documentName').value = documentName; // Устанавливаем имя документа
+            } else {
+                alert('Ошибка при загрузке содержимого документа');
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке содержимого документа:', error);
+            alert('Произошла ошибка при загрузке содержимого документа.');
+        }
+    }
+
 
     async function deleteDocument(documentId) {
         try {

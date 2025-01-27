@@ -60,7 +60,6 @@ public class MinioService
             try
             {
                 var memoryStream = new MemoryStream();
-                objectName += ".md";
 
                 await _minioClient.GetObjectAsync(new GetObjectArgs()
                     .WithBucket(_bucketName)

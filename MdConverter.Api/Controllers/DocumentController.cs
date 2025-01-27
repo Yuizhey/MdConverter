@@ -122,5 +122,35 @@ public class DocumentController : ControllerBase
                 return StatusCode(500, "Internal server error");
             }
         }
+        
+        [HttpGet]
+        [Authorize]
+        public async Task<ActionResult<DocumentContentResponse>> GetDocumentContent(string documentName)
+        {
+            try
+            {
+                var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var userName = jwtService.GetUserNameFromToken(token);
+
+                if (string.IsNullOrEmpty(userName))
+                {
+                    return Unauthorized("Invalid token.");
+                }
+
+                var fileName = $"{userName}/{documentName}.md";
+                var fileStream = await minioService.DownloadFileAsync(fileName);
+
+                using var reader = new StreamReader(fileStream);
+                var content = await reader.ReadToEndAsync();
+
+                return Ok(new DocumentContentResponse { Content = content });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching document content: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
 
 }
