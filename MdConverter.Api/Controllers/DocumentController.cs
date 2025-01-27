@@ -1,6 +1,8 @@
 using MdConverter.Api.Filters;
+using MdConverter.Api.RequestModels;
 using MdConverter.Api.ResponseModels;
 using MdConverter.Core.Abstractions.Services;
+using MdConverter.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MdConverter.Api.Controllers;
@@ -42,10 +44,26 @@ public class DocumentController : ControllerBase
         return Ok(response);
     }
     
-    [HttpDelete("{id:guid}")]
+    
+    [HttpPost]
+    public async Task<ActionResult<Guid>> CreateUser([FromBody]DocumentRequest userRequest)
+    {
+        var (document, error) = Document.Create(Guid.NewGuid(), userRequest.name, userRequest.userName);
+        if (!string.IsNullOrEmpty(error))
+        {
+            return BadRequest(error);
+        }
+        
+        var userId = await documentService.CreateDocument(document);
+        
+        return Ok(userId);
+    }
+    
+    
+    [HttpDelete]
     public async Task<ActionResult<Guid>> DeleteDocument(Guid documentId)
     {
-        var document = await documentService.GetDocumentById(documentId);
-        return Ok(document.Id);
+        var document_id = await documentService.DeleteDocument(documentId);
+        return Ok(document_id);
     }
 }

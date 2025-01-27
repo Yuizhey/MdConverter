@@ -24,7 +24,7 @@ public class DocumentRepository : IDocumentRepository
     public async Task<List<Document>> GetAllDocumentsByUserId(Guid userId)
     {
         var documentEntitys = await context.Documents.AsNoTracking().Include(u => u.User)
-            .Where(u => u.UsertId == userId).ToListAsync();
+            .Where(u => u.UserId == userId).ToListAsync();
         var documents = documentEntitys.Select(d=> Document.Create(d.Id, d.Name, d.User.Name).document).ToList();
         return documents;
     }
@@ -47,8 +47,16 @@ public class DocumentRepository : IDocumentRepository
 
     public async Task<Guid> DeleteDocument(Guid id)
     {
-        await context.Documents.Where(u => u.Id == id).ExecuteDeleteAsync();
-        await context.SaveChangesAsync();
+        var document = await context.Documents
+            .Where(u => u.Id == id)
+            .FirstOrDefaultAsync();
+
+        if (document != null)
+        {
+            context.Documents.Remove(document);  // Удаление из контекста
+            await context.SaveChangesAsync();    // Применение изменений в базе данных
+        }
+
         return id;
     }
 
@@ -59,7 +67,7 @@ public class DocumentRepository : IDocumentRepository
         {
             Id = document.Id,
             Name = document.Name,
-            UsertId = user.Id
+            UserId = user.Id
         };
         await context.Documents.AddAsync(documentEntity);
         await context.SaveChangesAsync();
@@ -70,7 +78,7 @@ public class DocumentRepository : IDocumentRepository
     {
         var document = await context.Documents.Where(u => u.Id == id).ExecuteUpdateAsync(
             d=>d.SetProperty(i => i.Name, name));
-        await context.SaveChangesAsync();
+        // await context.SaveChangesAsync();
         return id;
     }
 }
