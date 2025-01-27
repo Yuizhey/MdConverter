@@ -95,21 +95,32 @@ public class DocumentController : ControllerBase
 
         // Удаление документа
         [HttpDelete]
-        [Authorize] // Требуется авторизация для выполнения действия
-        public async Task<ActionResult<Guid>> DeleteDocument(Guid documentId)
+        [Authorize]
+        public async Task<ActionResult> DeleteDocument(Guid documentId)
         {
-            var document = await documentService.GetDocumentById(documentId);
-            if (document == null)
+            try
             {
-                return NotFound("Document not found.");
+                var document = await documentService.GetDocumentById(documentId);
+                if (document == null)
+                {
+                    return NotFound("Document not found.");
+                }
+
+                var fileName = $"{document.UserName}/{document.Name}";
+
+                // Удаляем файл из Minio
+                await minioService.DeleteFileAsync(fileName);
+
+                // Удаляем документ из базы данных
+                await documentService.DeleteDocument(documentId);
+
+                return Ok();
             }
-
-            // Удаляем файл из Minio
-            await minioService.DeleteFileAsync(document.UserName, document.Name);
-
-            // Удаляем документ из базы данных
-            var deletedDocumentId = await documentService.DeleteDocument(documentId);
-
-            return Ok(deletedDocumentId);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting document: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
         }
+
 }

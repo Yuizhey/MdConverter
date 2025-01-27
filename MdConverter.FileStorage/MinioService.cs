@@ -1,72 +1,99 @@
 using MdConverter.Application;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 
 public class MinioService
 {
-    private readonly IMinioClient _minioClient;
-    private readonly MinioSettings _minioSettings;
+        private readonly IMinioClient _minioClient;
+        private readonly string _bucketName;
 
-    public MinioService(IOptions<MinioSettings> minioSettings)
-    {
-        _minioSettings = minioSettings.Value;
-        _minioClient = new MinioClient()
-            .WithEndpoint(_minioSettings.Endpoint)
-            .WithCredentials(_minioSettings.AccessKey, _minioSettings.SecretKey);
-    }
-
-    public async Task UploadFileAsync(string fileName, Stream fileStream)
-    {
-        if (fileStream == null || fileStream.Length == 0)
+        public MinioService(IConfiguration configuration)
         {
-            throw new ArgumentException("Invalid file stream");
+            _minioClient = new MinioClient()
+                .WithEndpoint(configuration["MinioSettings:Endpoint"])
+                .WithCredentials(configuration["MinioSettings:AccessKey"], configuration["MinioSettings:SecretKey"])
+                .Build();
+
+            _bucketName = configuration["MinioSettings:BucketName"];
         }
 
-        fileStream.Position = 0;
-        const string bucketName = "usersdocuments";
-        
-
-        Console.WriteLine($"Checking bucket '{bucketName}'...");
-        var bucketExists = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucketName));
-
-        if (!bucketExists)
+        public async Task<bool> UploadFileAsync(string objectName, Stream fileStream)
         {
-            Console.WriteLine($"Bucket '{bucketName}' does not exist. Creating...");
-            await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(bucketName));
+            if (fileStream == null || fileStream.Length == 0)
+            {
+                throw new ArgumentException("Invalid file stream");
+            }
+
+            try
+            {
+                // Ensure the bucket exists
+                bool bucketExists = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(_bucketName));
+                if (!bucketExists)
+                {
+                    await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_bucketName));
+                }
+
+                // Upload the file
+                fileStream.Position = 0;
+
+                await _minioClient.PutObjectAsync(new PutObjectArgs()
+                    .WithBucket(_bucketName)
+                    .WithObject(objectName)
+                    .WithStreamData(fileStream)
+                    .WithObjectSize(fileStream.Length)
+                    .WithContentType("application/octet-stream"));
+
+                Console.WriteLine($"File '{objectName}' uploaded successfully.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading file: {ex.Message}");
+                return false;
+            }
         }
 
-        Console.WriteLine($"Uploading file '{fileName}'...");
-        var response = await _minioClient.PutObjectAsync(new PutObjectArgs()
-            .WithBucket(bucketName)
-            .WithObject(fileName)
-            .WithStreamData(fileStream)
-            .WithObjectSize(fileStream.Length));
+        public async Task<Stream> DownloadFileAsync(string objectName)
+        {
+            try
+            {
+                var memoryStream = new MemoryStream();
+                objectName += ".md";
 
-        Console.WriteLine($"File '{fileName}' uploaded successfully.");
-    }
+                await _minioClient.GetObjectAsync(new GetObjectArgs()
+                    .WithBucket(_bucketName)
+                    .WithObject(objectName)
+                    .WithCallbackStream(stream => stream.CopyTo(memoryStream)));
 
-    public async Task<Stream> DownloadFileAsync(string userName, string fileName)
-    {
-        var filePath = $"{userName}/{fileName}";
-        var fileStream = new MemoryStream();
+                memoryStream.Position = 0;
+                Console.WriteLine($"File '{objectName}' downloaded successfully.");
+                return memoryStream;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving file: {ex.Message}");
+                throw;
+            }
+        }
 
-        Console.WriteLine($"Downloading file '{filePath}'...");
-        await _minioClient.GetObjectAsync(new GetObjectArgs()
-            .WithBucket(_minioSettings.BucketName)
-            .WithObject(filePath)
-            .WithCallbackStream((stream) => stream.CopyTo(fileStream)));
+        public async Task<bool> DeleteFileAsync(string objectName)
+        {
+            try
+            {
+                objectName += ".md";
+                await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
+                    .WithBucket(_bucketName)
+                    .WithObject(objectName));
 
-        fileStream.Position = 0;
-        return fileStream;
-    }
-
-    public async Task DeleteFileAsync(string userName, string fileName)
-    {
-        var filePath = $"{userName}/{fileName}";
-        Console.WriteLine($"Deleting file '{filePath}'...");
-        await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
-            .WithBucket(_minioSettings.BucketName)
-            .WithObject(filePath));
-    }
+                Console.WriteLine($"File '{objectName}' deleted successfully.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting file: {ex.Message}");
+                return false;
+            }
+        }
 }

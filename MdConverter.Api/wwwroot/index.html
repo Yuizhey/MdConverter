@@ -33,7 +33,7 @@
             <label for="documentName">Введите название для документа:</label>
             <input type="text" id="documentName" placeholder="Введите название документа...">
 
-            <!-- Кнопка для сохранения и скачивания -->
+            <!-- Кнопки для сохранения и скачивания -->
             <button id="saveButton" class="secondary-button">Сохранить</button>
             <button id="downloadButton" class="secondary-button">Скачать HTML</button>
             <button id="openInNewWindowButton" class="secondary-button">Открыть в новом окне</button>
@@ -43,7 +43,7 @@
 
 <script src="/js/Markdown.js"></script>
 <script src="/js/AuthorizeCheck.js"></script>
-<script>
+<script >
     document.getElementById('logoutButton').addEventListener('click', async function () {
         try {
             const response = await fetch('/Account/Logout', {
@@ -66,11 +66,11 @@
         }
     });
 
-    document.getElementById('getDocumentsButton').addEventListener('click', async function() {
+    document.getElementById('getDocumentsButton').addEventListener('click', async function () {
         try {
             const token = document.cookie.split('; ').find(row => row.startsWith('token')).split('=')[1];
 
-            const response = await fetch('Document/GetAllDocumentsByUserName', {
+            const response = await fetch('/Document/GetAllDocumentsByUserName', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -81,12 +81,24 @@
             if (response.ok) {
                 const documents = await response.json();
                 const list = document.getElementById('documentsList');
-                list.innerHTML = '';
+                list.innerHTML = ''; // Очищаем текущий список
 
                 documents.forEach(doc => {
                     const li = document.createElement('li');
                     li.textContent = doc.name;
-                    list.appendChild(li);
+
+                    // Создаем кнопку удаления
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Удалить';
+                    deleteButton.style.marginLeft = '10px';
+                    deleteButton.addEventListener('click', async () => {
+                        if (confirm(`Вы уверены, что хотите удалить документ "${doc.name}"?`)) {
+                            await deleteDocument(doc.id); // Удаляем документ
+                        }
+                    });
+
+                    li.appendChild(deleteButton); // Добавляем кнопку к элементу списка
+                    list.appendChild(li); // Добавляем элемент в список
                 });
             } else {
                 alert('Ошибка при получении документов');
@@ -97,25 +109,46 @@
         }
     });
 
-    document.getElementById('downloadButton').addEventListener('click', function() {
-        const htmlContent = document.getElementById('renderedHtml').value;
-        const documentName = document.getElementById('documentName').value || "renderedMarkdown"; // Берем имя из поля или по умолчанию "renderedMarkdown"
+    async function deleteDocument(documentId) {
+        try {
+            const token = document.cookie.split('; ').find(row => row.startsWith('token')).split('=')[1];
 
-        // Создаем файл для скачивания с указанным именем
+            const response = await fetch(`/Document/DeleteDocument?documentId=${documentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                alert('Документ успешно удален');
+                document.getElementById('getDocumentsButton').click(); // Обновляем список документов
+            } else {
+                alert('Ошибка при удалении документа');
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении документа:', error);
+            alert('Произошла ошибка при удалении документа.');
+        }
+    }
+
+
+    document.getElementById('downloadButton').addEventListener('click', function () {
+        const htmlContent = document.getElementById('renderedHtml').value;
+        const documentName = document.getElementById('documentName').value || "renderedMarkdown";
+
         const blob = new Blob([htmlContent], { type: 'text/html' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `${documentName}.html`; // Устанавливаем название файла
+        link.download = `${documentName}.html`;
         link.click();
     });
 
-    document.getElementById('openInNewWindowButton').addEventListener('click', function() {
+    document.getElementById('openInNewWindowButton').addEventListener('click', function () {
         const htmlContent = document.getElementById('renderedHtml').value;
 
-        // Создаем новое окно
         const newWindow = window.open('', '_blank');
-
-        // Строим HTML-документ с нужным содержимым
         newWindow.document.write(`
         <!DOCTYPE html>
         <html lang="en">
@@ -125,18 +158,16 @@
             <title>Отрендеренный Markdown</title>
         </head>
         <body>
-            ${htmlContent} <!-- Вставляем содержимое HTML -->
+            ${htmlContent}
         </body>
         </html>
     `);
-
-        // Закрываем документ нового окна, чтобы он отобразился корректно
         newWindow.document.close();
     });
 
     document.getElementById('saveButton').addEventListener('click', async function () {
-        const markdownText = document.getElementById('markdownText').value; // Получаем текст markdown
-        const fileName = document.getElementById('documentName').value || "renderedMarkdown"; // Берем имя из поля или по умолчанию "renderedMarkdown"
+        const markdownText = document.getElementById('markdownText').value;
+        const fileName = document.getElementById('documentName').value || "renderedMarkdown";
 
         if (!markdownText) {
             alert("Пожалуйста, введите текст Markdown.");
