@@ -1,8 +1,10 @@
 using MdConverter.Api.Filters;
 using MdConverter.Api.RequestModels;
 using MdConverter.Api.ResponseModels;
+using MdConverter.Application.Services;
 using MdConverter.Core.Abstractions.Services;
 using MdConverter.Core.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MdConverter.Api.Controllers;
@@ -11,20 +13,46 @@ namespace MdConverter.Api.Controllers;
 [Route("[controller]/[action]")]
 public class DocumentController : ControllerBase
 {
+    private readonly JwtService jwtService;
     private readonly IDocumentService documentService;
 
-    public DocumentController(IDocumentService documentService)
+    public DocumentController(JwtService jwtService, IDocumentService documentService)
     {
+        this.jwtService = jwtService;
         this.documentService = documentService;
     }
-    
-    [MyAuthorizeFilter]
-    [HttpGet]
-    public async Task<ActionResult<List<DocumentResponse>>> GetAllDocumentsByUserName(string userName)
+
+    [HttpGet]// Получение документов пользователя по имени пользователя (из токена)
+    [Authorize]  // Это требование для того, чтобы запрос был защищен
+    public async Task<ActionResult<List<DocumentResponse>>> GetAllDocumentsByUserName()
     {
-        var documents = await documentService.GetAllDocumentsByUserName(userName);
-        var response = documents.Select(u => new DocumentResponse(u.Id, u.Name, u.UserName));
-        return Ok(response);
+        // Извлекаем токен из заголовка Authorization
+        var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            
+        if (string.IsNullOrEmpty(token))
+        {
+            return Unauthorized("Token is missing.");
+        }
+
+        try
+        {
+            // Извлекаем имя пользователя из токена
+            var userName = jwtService.GetUserNameFromToken(token);
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                return Unauthorized("Invalid token.");
+            }
+
+            // Получаем документы пользователя по имени
+            var documents = await documentService.GetAllDocumentsByUserName(userName);
+            var response = documents.Select(u => new DocumentResponse(u.Id, u.Name, u.UserName)).ToList();
+            return Ok(response);
+        }
+        catch (Exception)
+        {
+            return Unauthorized("Invalid token.");
+        }
     }
     
     [MyAuthorizeFilter]

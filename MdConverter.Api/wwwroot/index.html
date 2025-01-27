@@ -7,18 +7,31 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<h1>Markdown Renderer</h1>
+<div class="container">
+    <h1>Markdown Renderer</h1>
 
-<div class="button-container">
-    <button id="loginButton" onclick="location.href='login.html'">Войти</button>
-    <button id="registerButton" onclick="location.href='Register.html'">Зарегистрироваться</button>
-    <button id="logoutButton" disabled>Выйти</button>
-</div>
+    <div class="button-container">
+        <button id="loginButton" onclick="location.href='login.html'">Войти</button>
+        <button id="registerButton" onclick="location.href='Register.html'">Зарегистрироваться</button>
+        <button id="logoutButton" disabled>Выйти</button>
+    </div>
 
-<div class="markdown-container">
-    <textarea id="markdownText" placeholder="Введите ваш Markdown здесь..."></textarea>
-    <button id="convertButton">Конвертировать</button>
-    <div id="renderedHtml">Результат отрендеренного Markdown будет здесь...</div>
+    <div class="main-container">
+        <div class="left-column">
+            <div class="markdown-container">
+                <textarea id="markdownText" placeholder="Введите ваш Markdown здесь..."></textarea>
+                <button id="convertButton">Конвертировать</button>
+                <textarea id="renderedHtml" readonly>Результат отрендеренного Markdown будет здесь...</textarea>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <button id="getDocumentsButton">Получить документы</button>
+            <ul id="documentsList"></ul>
+            <button id="downloadButton" class="secondary-button">Скачать HTML</button>
+            <button id="openInNewWindowButton" class="secondary-button">Открыть в новом окне</button>
+        </div>
+    </div>
 </div>
 
 <script src="/js/Markdown.js"></script>
@@ -26,7 +39,6 @@
 <script>
     document.getElementById('logoutButton').addEventListener('click', async function () {
         try {
-            // Отправляем запрос на сервер для выхода (удаляем токен на сервере)
             const response = await fetch('/Account/Logout', {
                 method: 'POST',
                 headers: {
@@ -35,14 +47,9 @@
             });
 
             if (response.ok) {
-                // Удаляем куку "token" на клиенте
-                document.cookie = 'token=; Max-Age=0; path=/';  // Удаление куки
-
-                // Делаем кнопку "Выйти" неактивной
+                document.cookie = 'token=; Max-Age=0; path=/';
                 document.getElementById('logoutButton').disabled = true;
-
-                // Можно, например, редиректить на страницу входа или обновить страницу
-                location.href = '/index.html';  // Перенаправляем на страницу входа
+                location.href = '/index.html';
             } else {
                 alert('Ошибка при выходе');
             }
@@ -52,6 +59,69 @@
         }
     });
 
+    document.getElementById('getDocumentsButton').addEventListener('click', async function() {
+        try {
+            const token = document.cookie.split('; ').find(row => row.startsWith('token')).split('=')[1];
+
+            const response = await fetch('Document/GetAllDocumentsByUserName', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const documents = await response.json();
+                const list = document.getElementById('documentsList');
+                list.innerHTML = '';
+
+                documents.forEach(doc => {
+                    const li = document.createElement('li');
+                    li.textContent = doc.name;
+                    list.appendChild(li);
+                });
+            } else {
+                alert('Ошибка при получении документов');
+            }
+        } catch (error) {
+            console.error('Ошибка при запросе документов:', error);
+            alert('Произошла ошибка при загрузке документов.');
+        }
+    });
+
+    document.getElementById('downloadButton').addEventListener('click', function() {
+        const htmlContent = document.getElementById('renderedHtml').value;
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'renderedMarkdown.html';
+        link.click();
+    });
+    document.getElementById('openInNewWindowButton').addEventListener('click', function() {
+        const htmlContent = document.getElementById('renderedHtml').value;
+
+        // Создаем новое окно
+        const newWindow = window.open('', '_blank');
+
+        // Строим HTML-документ с нужным содержимым
+        newWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Отрендеренный Markdown</title>
+        </head>
+        <body>
+            ${htmlContent} <!-- Вставляем содержимое HTML -->
+        </body>
+        </html>
+    `);
+
+        // Закрываем документ нового окна, чтобы он отобразился корректно
+        newWindow.document.close();
+    });
 </script>
 </body>
 </html>

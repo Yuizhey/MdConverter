@@ -28,4 +28,20 @@ public class JwtService
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.Value.SecretKey)),SecurityAlgorithms.HmacSha256));
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+    public string GetUserNameFromToken(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        
+        var jwtToken = handler.ReadToken(token) as JwtSecurityToken;
+        
+        if (jwtToken == null)
+        {
+            throw new SecurityTokenException("Invalid token");
+        }
+
+
+        var usernameClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "UserName");
+        return usernameClaim?.Value; 
+    }
+
 }
