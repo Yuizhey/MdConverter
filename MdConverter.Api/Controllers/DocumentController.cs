@@ -17,23 +17,6 @@ public class DocumentController : ControllerBase
     {
         this.documentService = documentService;
     }
-
-    [HttpGet]
-    public async Task<ActionResult<List<DocumentResponse>>> GetAllDocuments()
-    {
-        var documents = await documentService.GetAllDocuments();
-        var response = documents.Select(u => new DocumentResponse(u.Id, u.Name, u.UserName));
-        return Ok(response);
-    }
-
-    [MyAuthorizeFilter]
-    [HttpGet]
-    public async Task<ActionResult<List<DocumentResponse>>> GetAllDocumentsByUserId(Guid id)
-    {
-        var documents = await documentService.GetAllDocumentsByUserId(id);
-        var response = documents.Select(u => new DocumentResponse(u.Id, u.Name, u.UserName));
-        return Ok(response);
-    }
     
     [MyAuthorizeFilter]
     [HttpGet]
@@ -44,7 +27,7 @@ public class DocumentController : ControllerBase
         return Ok(response);
     }
     
-    
+    [MyAuthorizeFilter]
     [HttpPost]
     public async Task<ActionResult<Guid>> CreateUser([FromBody]DocumentRequest userRequest)
     {
@@ -59,7 +42,7 @@ public class DocumentController : ControllerBase
         return Ok(userId);
     }
     
-    
+    [MyAuthorizeFilter]
     [HttpDelete]
     public async Task<ActionResult<Guid>> DeleteDocument(Guid documentId)
     {
