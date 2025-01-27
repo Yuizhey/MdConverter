@@ -5,7 +5,6 @@ using MdConverter.Api.ResponseModels;
 using MdConverter.Application.Services;
 using MdConverter.Core.Abstractions.Services;
 using MdConverter.Core.Models;
-using MdConverter.FileStorage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -86,7 +85,7 @@ public class DocumentController : ControllerBase
             // Сохранение файла на Minio
             var fileName = $"{userName}/{userRequest.Name}.md"; // Используем имя документа для создания пути
             var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(userRequest.MarkdownText));
-            await minioService.UploadFileAsync(userName, fileName, fileStream);
+            await minioService.UploadFileAsync(fileName, fileStream);
 
             // Сохраняем информацию о документе в базе данных
             var userId = await documentService.CreateDocument(document);
