@@ -20,5 +20,4 @@ public class MarkDownController : ControllerBase
         
         return Ok(new { html });
     }
-
 }
