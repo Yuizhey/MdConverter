@@ -24,4 +24,13 @@
       <ProjectReference Include="..\MdConverter.FileStorage\MdConverter.FileStorage.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="Markdig">
+        <HintPath>bin\Debug\net8.0\Markdig.dll</HintPath>
+      </Reference>
+      <Reference Include="Markdown">
+        <HintPath>bin\Debug\net8.0\Markdown.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>
