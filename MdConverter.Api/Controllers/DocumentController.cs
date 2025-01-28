@@ -58,99 +58,97 @@ public class DocumentController : ControllerBase
         }
     }
     
-    [HttpPost]
-        [Authorize] // Требуется авторизация для выполнения действия
-        public async Task<ActionResult<Guid>> CreateDocument([FromBody] DocumentRequest userRequest)
-        {
+    [HttpPost] 
+    [Authorize] // Требуется авторизация для выполнения действия
+    public async Task<ActionResult<Guid>> CreateDocument([FromBody] DocumentRequest userRequest)
+    {
             // Извлекаем имя пользователя из токена
-            var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            if (string.IsNullOrEmpty(token))
+        var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+        if (string.IsNullOrEmpty(token))
+        {
+            return Unauthorized("Token is missing.");
+        }
+
+        var userName = jwtService.GetUserNameFromToken(token);
+        if (string.IsNullOrEmpty(userName))
+        {
+            return Unauthorized("Invalid token.");
+        }
+
+            // Создание документа
+        var (document, error) = Document.Create(Guid.NewGuid(), userRequest.Name, userName);
+        if (!string.IsNullOrEmpty(error))
+        {
+            return BadRequest(error);
+        }
+
+            // Сохранение файла на Minio
+        var fileName = $"{userName}/{userRequest.Name}.md"; // Используем имя документа для создания пути
+        var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(userRequest.MarkdownText));
+        await minioService.UploadFileAsync(fileName, fileStream);
+
+            // Сохраняем информацию о документе в базе данных
+        var userId = await documentService.CreateDocument(document);
+
+        return Ok(userId);
+    }
+
+        // Удаление документа
+    [HttpDelete]
+    [Authorize]
+    public async Task<ActionResult> DeleteDocument(Guid documentId)
+    {
+        try
+        {
+            var document = await documentService.GetDocumentById(documentId);
+            if (document == null)
             {
-                return Unauthorized("Token is missing.");
+                return NotFound("Document not found.");
             }
 
+            var fileName = $"{document.UserName}/{document.Name}";
+
+                // Удаляем файл из Minio
+            await minioService.DeleteFileAsync(fileName);
+
+                // Удаляем документ из базы данных
+            await documentService.DeleteDocument(documentId);
+
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting document: {ex.Message}");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+        
+    [HttpGet]
+    [Authorize]
+    public async Task<ActionResult<DocumentContentResponse>> GetDocumentContent(string documentName)
+    {
+        try
+        {
+            var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             var userName = jwtService.GetUserNameFromToken(token);
+
             if (string.IsNullOrEmpty(userName))
             {
                 return Unauthorized("Invalid token.");
             }
 
-            // Создание документа
-            var (document, error) = Document.Create(Guid.NewGuid(), userRequest.Name, userName);
-            if (!string.IsNullOrEmpty(error))
-            {
-                return BadRequest(error);
-            }
+            var fileName = $"{userName}/{documentName}.md";
+            var fileStream = await minioService.DownloadFileAsync(fileName);
 
-            // Сохранение файла на Minio
-            var fileName = $"{userName}/{userRequest.Name}.md"; // Используем имя документа для создания пути
-            var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(userRequest.MarkdownText));
-            await minioService.UploadFileAsync(fileName, fileStream);
+            using var reader = new StreamReader(fileStream);
+            var content = await reader.ReadToEndAsync();
 
-            // Сохраняем информацию о документе в базе данных
-            var userId = await documentService.CreateDocument(document);
-
-            return Ok(userId);
+            return Ok(new DocumentContentResponse { Content = content });
         }
-
-        // Удаление документа
-        [HttpDelete]
-        [Authorize]
-        public async Task<ActionResult> DeleteDocument(Guid documentId)
+        catch (Exception ex)
         {
-            try
-            {
-                var document = await documentService.GetDocumentById(documentId);
-                if (document == null)
-                {
-                    return NotFound("Document not found.");
-                }
-
-                var fileName = $"{document.UserName}/{document.Name}";
-
-                // Удаляем файл из Minio
-                await minioService.DeleteFileAsync(fileName);
-
-                // Удаляем документ из базы данных
-                await documentService.DeleteDocument(documentId);
-
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error deleting document: {ex.Message}");
-                return StatusCode(500, "Internal server error");
-            }
+            Console.WriteLine($"Error fetching document content: {ex.Message}");
+            return StatusCode(500, "Internal server error");
         }
-        
-        [HttpGet]
-        [Authorize]
-        public async Task<ActionResult<DocumentContentResponse>> GetDocumentContent(string documentName)
-        {
-            try
-            {
-                var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                var userName = jwtService.GetUserNameFromToken(token);
-
-                if (string.IsNullOrEmpty(userName))
-                {
-                    return Unauthorized("Invalid token.");
-                }
-
-                var fileName = $"{userName}/{documentName}.md";
-                var fileStream = await minioService.DownloadFileAsync(fileName);
-
-                using var reader = new StreamReader(fileStream);
-                var content = await reader.ReadToEndAsync();
-
-                return Ok(new DocumentContentResponse { Content = content });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching document content: {ex.Message}");
-                return StatusCode(500, "Internal server error");
-            }
-        }
-
-
+    }
 }

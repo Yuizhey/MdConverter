@@ -27,7 +27,7 @@ h1 {
 }
 
 button {
-    margin: 0 10px;
+    margin: 30px 10px;
     padding: 12px 24px;
     font-size: 16px;
     border: none;
@@ -59,7 +59,7 @@ button:disabled {
 .main-container {
     display: flex;
     justify-content: space-between;
-    gap: 20px;
+    gap: 40px;
     margin-bottom: 20px;
 }
 
@@ -111,3 +111,4 @@ textarea {
     align-items: flex-start;
     gap: 15px;
 }
+

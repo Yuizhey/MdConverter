@@ -65,7 +65,6 @@
             alert('Произошла ошибка при выходе.');
         }
     });
-
     document.getElementById('getDocumentsButton').addEventListener('click', async function () {
         try {
             const token = document.cookie.split('; ').find(row => row.startsWith('token')).split('=')[1];

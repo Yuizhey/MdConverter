@@ -4,47 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            text-align: center;
-        }
-
-        form {
-            display: inline-block;
-            margin-top: 50px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-
-        input {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: #28A745;
-            color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #218838;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/loginAndRegister.css">
 </head>
 <body>
 <h1>Register</h1>
@@ -55,32 +15,6 @@
     <button type="submit">Register</button>
 </form>
 
-<script>
-    document.getElementById('registerForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-
-        const name = document.getElementById('name').value;
-        const password = document.getElementById('password').value;
-
-        try {
-            const response = await fetch('/Account/Register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, password })
-            });
-
-            if (response.ok) {
-                alert('Registration successful!');
-                window.location.href = '/login.html';
-            } else {
-                const errorMessage = await response.text();
-                alert(`Registration failed: ${errorMessage}`);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred during registration.');
-        }
-    });
-</script>
+<script src="/js/Register.js"></script>
 </body>
 </html>

@@ -4,47 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            text-align: center;
-        }
-
-        form {
-            display: inline-block;
-            margin-top: 50px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-
-        input {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007BFF;
-            color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/loginAndRegister.css">
 </head>
 <body>
 <h1>Login</h1>
@@ -55,34 +15,6 @@
     <button type="submit">Login</button>
 </form>
 
-<script>
-    document.getElementById('loginForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-
-        const name = document.getElementById('name').value;
-        const password = document.getElementById('password').value;
-
-        try {
-            const response = await fetch('/Account/Login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, password })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                document.cookie = `token=${data.token}; path=/;`;
-                alert('Login successful!');
-                window.location.href = '/index.html';
-            } else {
-                const errorMessage = await response.text();
-                alert(`Login failed: ${errorMessage}`);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred while logging in.');
-        }
-    });
-</script>
+<script src="/js/Login.js"></script>
 </body>
 </html>
