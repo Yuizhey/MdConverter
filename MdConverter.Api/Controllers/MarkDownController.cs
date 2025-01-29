@@ -16,7 +16,7 @@ public class MarkDownController : ControllerBase
             return BadRequest("Markdown text cannot be empty.");
 
         var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
-        var html = Markdown.ToHtml(request.MarkdownText, pipeline);
+        var html = Markdig.Markdown.ToHtml(request.MarkdownText, pipeline);
         
         return Ok(new { html });
     }
