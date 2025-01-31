@@ -1,12 +1,12 @@
-using Markdig;
 using MdConverter.Api.RequestModels;
 using Microsoft.AspNetCore.Mvc;
+using Markdown;
 
 namespace MdConverter.Api.Controllers
 {
     [ApiController]
     [Route("[controller]/[action]")]
-    public class MarkDownController : ControllerBase
+    public class MyMarkDownController : ControllerBase
     {
         [HttpPost]
         public IActionResult Render([FromBody] MarkdownRequest request)
@@ -14,9 +14,11 @@ namespace MdConverter.Api.Controllers
             if (string.IsNullOrWhiteSpace(request.MarkdownText))
                 return BadRequest("Markdown text cannot be empty.");
 
-            var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
-            var html = Markdig.Markdown.ToHtml(request.MarkdownText, pipeline);
-            
+            MarkdownParser mdParser = new MarkdownParser();
+            MarkdownRenderer mdRenderer = new MarkdownRenderer();
+            MarkdownProcessor mdProcessor = new MarkdownProcessor(mdParser, mdRenderer);
+            var html = mdProcessor.GetHtml(request.MarkdownText);
+
             return Ok(new { html });
         }
     }
