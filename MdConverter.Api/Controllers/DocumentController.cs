@@ -58,11 +58,10 @@ public class DocumentController : ControllerBase
         }
     }
     
-    [HttpPost] 
-    [Authorize] // Требуется авторизация для выполнения действия
+    [HttpPost]
+    [Authorize]
     public async Task<ActionResult<Guid>> CreateDocument([FromBody] DocumentRequest userRequest)
     {
-            // Извлекаем имя пользователя из токена
         var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
         if (string.IsNullOrEmpty(token))
         {
@@ -75,23 +74,35 @@ public class DocumentController : ControllerBase
             return Unauthorized("Invalid token.");
         }
 
-            // Создание документа
+        var fileName = $"{userName}/{userRequest.Name}.md";
+    
+        // Проверяем, существует ли файл на MinIO
+        var fileExists = await minioService.FileExistsAsync(fileName);
+    
+        if (fileExists)
+        {
+            // Если файл существует, можно решить: перезаписывать его или возвращать ошибку
+            // В этом случае перезаписываем
+            await minioService.DeleteFileAsync(fileName);  // Удаляем старый файл
+        }
+
+        // Создание документа
         var (document, error) = Document.Create(Guid.NewGuid(), userRequest.Name, userName);
         if (!string.IsNullOrEmpty(error))
         {
             return BadRequest(error);
         }
 
-            // Сохранение файла на Minio
-        var fileName = $"{userName}/{userRequest.Name}.md"; // Используем имя документа для создания пути
+        // Сохранение нового файла
         var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(userRequest.MarkdownText));
         await minioService.UploadFileAsync(fileName, fileStream);
 
-            // Сохраняем информацию о документе в базе данных
+        // Сохраняем информацию о документе в базе данных
         var userId = await documentService.CreateDocument(document);
 
         return Ok(userId);
     }
+
 
         // Удаление документа
     [HttpDelete]

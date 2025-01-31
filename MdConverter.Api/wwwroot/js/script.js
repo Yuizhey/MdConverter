@@ -9,13 +9,12 @@ function validateSaveButton() {
     const fileName = fileNameInput.value.trim();
 
     const isFileNameDuplicate = existingFileNames.includes(fileName.toLowerCase());
+    const shouldEnableSaveButton = markdownText && fileName;
 
-    if (markdownText && fileName && !isFileNameDuplicate) {
-        saveButton.disabled = false;
-    } else {
-        saveButton.disabled = true;
-    }
+    // Кнопка активируется, если введены данные и файл не существует, или если файл существует, но пользователь согласился на перезапись
+    saveButton.disabled = !(shouldEnableSaveButton && (isFileNameDuplicate || !isFileNameDuplicate));
 }
+
 
 
 markdownInput.addEventListener('input', validateSaveButton);
@@ -52,9 +51,21 @@ saveButton.addEventListener('click', async function () {
     const markdownText = markdownInput.value.trim();
     const fileName = fileNameInput.value.trim();
 
-    if (!markdownText || !fileName || existingFileNames.includes(fileName.toLowerCase())) {
+    // Проверяем на пустые значения или дубликаты
+    if (!markdownText || !fileName) {
         alert("Ошибка: проверьте введенные данные.");
         return;
+    }
+
+    // Проверяем, существует ли документ с таким же названием
+    const isFileNameDuplicate = existingFileNames.includes(fileName.toLowerCase());
+
+    // Если файл существует, показываем предупреждение
+    if (isFileNameDuplicate) {
+        const confirmation = confirm(`Документ с именем "${fileName}" уже существует. Хотите его перезаписать?`);
+        if (!confirmation) {
+            return; // Прерываем сохранение, если пользователь не согласен на перезапись
+        }
     }
 
     try {
@@ -84,6 +95,7 @@ saveButton.addEventListener('click', async function () {
         alert('Произошла ошибка при сохранении документа.');
     }
 });
+
 
 
 document.getElementById('logoutButton').addEventListener('click', async function () {
@@ -122,7 +134,7 @@ async function loadDocumentContent(documentName) {
         });
 
         if (response.ok) {
-            const { content } = await response.json();
+            const { content }  = await response.json();
             document.getElementById('markdownText').value = content;
             document.getElementById('documentName').value = documentName;
         } else {

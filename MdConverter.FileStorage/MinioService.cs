@@ -95,4 +95,19 @@ public class MinioService
                 return false;
             }
         }
+        
+        public async Task<bool> FileExistsAsync(string objectName)
+        {
+            try
+            {
+                var exists = await _minioClient.StatObjectAsync(new StatObjectArgs()
+                    .WithBucket(_bucketName)
+                    .WithObject(objectName));
+                return exists != null; // Если файл найден, возвращаем true
+            }
+            catch (Exception)
+            {
+                return false; // Если файл не найден, выбрасывается исключение, возвращаем false
+            }
+        }
 }
