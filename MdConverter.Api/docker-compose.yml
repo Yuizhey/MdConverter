@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mdconverter-api
+    container_name: mdconverter-api
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Username=postgres;Password=yourpassword;Database=mdconverterdb
+      - Minio__Url=http://minio:9000
+      - Minio__AccessKey=youraccesskey
+      - Minio__SecretKey=yoursecretkey
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - mdconverter-network
+
+  postgres:
+    image: postgres:13
+    container_name: mdconverter-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=yourpassword
+      - POSTGRES_DB=mdconverterdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - mdconverter-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: mdconverter-minio
+    environment:
+      - MINIO_ACCESS_KEY=youraccesskey
+      - MINIO_SECRET_KEY=yoursecretkey
+    ports:
+      - "9000:9000"
+    command: server /data
+    volumes:
+      - minio-data:/data
+    networks:
+      - mdconverter-network
+
+networks:
+  mdconverter-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  minio-data:

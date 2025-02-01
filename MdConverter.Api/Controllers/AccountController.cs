@@ -34,7 +34,7 @@ public class AccountController : ControllerBase
         {
             return BadRequest("Пользователь с таким именем уже существует.");
         }
-
+        
         await accountService.Register(user.Name, user.PasswordHash);
         return Ok();
     }

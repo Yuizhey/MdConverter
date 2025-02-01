@@ -20,6 +20,7 @@ public class User
         if (string.IsNullOrWhiteSpace(name) || name.Length > MAX_NAME_LENGTH || name.Length < MIN_NAME_LENGTH)
         {
             error = "Name must be between 3 and 30 characters";
+            return (null, error);
         }
         var user = new User(id, name, passwordHash);
         return (user, error);

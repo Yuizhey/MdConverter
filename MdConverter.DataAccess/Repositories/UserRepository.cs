@@ -30,9 +30,14 @@ public class UserRepository : IUserRepository
         return user;
     }
     
-    public async Task<User> GetUserByName(string name)
+    public async Task<User?> GetUserByName(string name)
     {
         var userEntity = await context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Name == name);
+        if (userEntity == null)
+        {
+            return null;
+        }
+
         var user = User.Create(userEntity.Id, userEntity.Name, userEntity.PasswordHash).user;
         return user;
     }
