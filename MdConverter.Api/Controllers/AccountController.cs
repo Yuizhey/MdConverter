@@ -18,7 +18,7 @@ public class AccountController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<IActionResult> Register([FromBody]UserRequest userRequest)
+    public async Task<IActionResult> Register([FromBody] UserRequest userRequest)
     {
         var (user, error) = Core.Models.User.Create(
             Guid.NewGuid(),
@@ -28,12 +28,19 @@ public class AccountController : ControllerBase
         {
             return BadRequest(error);
         }
-        await accountService.Register(user.Name,user.PasswordHash);
+
+        var existingUser = await accountService.GetUserByName(user.Name);
+        if (existingUser != null)
+        {
+            return BadRequest("Пользователь с таким именем уже существует.");
+        }
+
+        await accountService.Register(user.Name, user.PasswordHash);
         return Ok();
     }
     
     [HttpPost]
-    public async Task<ActionResult> Login([FromBody]UserRequest userRequest)
+    public async Task<ActionResult> Login([FromBody] UserRequest userRequest)
     {
         var (user, error) = Core.Models.User.Create(
             Guid.NewGuid(),
@@ -43,9 +50,23 @@ public class AccountController : ControllerBase
         {
             return BadRequest(error);
         }
-        var token = await accountService.Login(user.Name, user.PasswordHash);
-        HttpContext.Response.Cookies.Append("token", token);
-        return Ok(new {token});
+
+        var existingUser = await accountService.GetUserByName(user.Name);
+        if (existingUser == null)
+        {
+            return BadRequest("Пользователь с таким именем не найден.");
+        }
+
+        try
+        {
+            var token = await accountService.Login(user.Name, user.PasswordHash);
+            HttpContext.Response.Cookies.Append("token", token);
+            return Ok(new { token });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        };
     }
     
     [HttpPost]

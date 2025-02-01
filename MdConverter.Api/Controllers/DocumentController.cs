@@ -84,6 +84,8 @@ public class DocumentController : ControllerBase
             // Если файл существует, можно решить: перезаписывать его или возвращать ошибку
             // В этом случае перезаписываем
             await minioService.DeleteFileAsync(fileName);  // Удаляем старый файл
+            await minioService.UploadFileAsync(fileName, new MemoryStream(Encoding.UTF8.GetBytes(userRequest.MarkdownText)));
+            return Ok();
         }
 
         // Создание документа

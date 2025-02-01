@@ -15,6 +15,11 @@ public class AccountService : IAccountService
         this.jwtService = jwtService;
     }
 
+    public async Task<User> GetUserByName(string name)
+    {
+        return await userRepository.GetUserByName(name);
+    }
+    
     public async Task Register(string username, string password)
     {
         var user = User.Create(Guid.NewGuid(), username,password).user;
