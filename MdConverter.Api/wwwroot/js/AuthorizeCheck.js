@@ -9,6 +9,8 @@ function updateButtonStates() {
     document.getElementById('logoutButton').disabled = !token;
     document.getElementById('loginButton').disabled = !!token;
     document.getElementById('registerButton').disabled = !!token;
+    document.getElementById('getDocumentsButton').disabled = !token;
+    document.getElementById('saveButton').disabled = !token;
 }
 
 document.addEventListener('DOMContentLoaded', updateButtonStates);

@@ -1,24 +1,29 @@
 const markdownInput = document.getElementById('markdownText');
 const fileNameInput = document.getElementById('documentName');
 const saveButton = document.getElementById('saveButton');
+const convertMarkdigButton = document.getElementById('convertMarkdigButton');
+const convertMyMarkdownButton = document.getElementById('convertMyMarkdownButton');
 let existingFileNames = [];
 
-
-function validateSaveButton() {
+// Функция для проверки активного состояния кнопок
+function validateButtons() {
     const markdownText = markdownInput.value.trim();
     const fileName = fileNameInput.value.trim();
 
     const isFileNameDuplicate = existingFileNames.includes(fileName.toLowerCase());
     const shouldEnableSaveButton = markdownText && fileName;
 
-    // Кнопка активируется, если введены данные и файл не существует, или если файл существует, но пользователь согласился на перезапись
     saveButton.disabled = !(shouldEnableSaveButton && (isFileNameDuplicate || !isFileNameDuplicate));
+    convertMarkdigButton.disabled = !markdownText;
+    convertMyMarkdownButton.disabled = !markdownText;
 }
 
+// Привязываем события к полю для ввода Markdown
+markdownInput.addEventListener('input', validateButtons);
+fileNameInput.addEventListener('input', validateButtons);
 
-
-markdownInput.addEventListener('input', validateSaveButton);
-fileNameInput.addEventListener('input', validateSaveButton);
+// Первоначальная проверка при загрузке страницы
+validateButtons();
 
 
 document.getElementById('getDocumentsButton').addEventListener('click', async function () {
@@ -36,7 +41,7 @@ document.getElementById('getDocumentsButton').addEventListener('click', async fu
         if (response.ok) {
             const documents = await response.json();
             existingFileNames = documents.map(doc => doc.name.toLowerCase()); // Список существующих файлов
-            validateSaveButton(); // Проверяем кнопку
+            validateButtons(); // Проверяем кнопку
         } else {
             alert('Ошибка при получении документов');
         }
@@ -86,9 +91,7 @@ saveButton.addEventListener('click', async function () {
         if (response.ok) {
             alert('Документ успешно сохранен!');
             existingFileNames.push(fileName.toLowerCase()); // Добавляем в список существующих
-            validateSaveButton(); // Перепроверяем кнопку
-        } else {
-            alert('Ошибка при сохранении документа');
+            validateButtons();
         }
     } catch (error) {
         console.error('Ошибка при сохранении документа:', error);
@@ -203,7 +206,7 @@ document.getElementById('getDocumentsButton').addEventListener('click', async fu
             list.innerHTML = ''; // Очищаем текущий список
 
             existingFileNames = documents.map(doc => doc.name.toLowerCase());
-            validateSaveButton(); // Проверяем кнопку
+            validateButtons() // Проверяем кнопку
 
             documents.forEach(doc => {
                 const listItem = document.createElement('li');

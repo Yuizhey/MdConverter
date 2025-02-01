@@ -41,8 +41,7 @@ document.getElementById('convertMyMarkdownButton').addEventListener('click', asy
             const data = await response.json();
             document.getElementById('renderedHtml').textContent = data.html;
         } else {
-            const errorMessage = await response.text();
-            alert(`Ошибка: ${errorMessage}`);
+            document.getElementById('renderedHtml').textContent = document.getElementById('markdownText').value;
         }
     } catch (error) {
         console.error('Ошибка сети или сервера:', error);
