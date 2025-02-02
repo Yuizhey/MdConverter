@@ -12,10 +12,12 @@ services:
       - "8081:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - ConnectionStrings__DefaultConnection=${CONNECTIONSTRINGS__DEFAULTCONNECTION}
+      - ConnectionStrings__DefaultConnection=${ConnectionStrings__MdConverterDbContext}
       - Minio__Url=${MINIO__URL}
       - Minio__AccessKey=${MINIO__ACCESSKEY}
       - Minio__SecretKey=${MINIO__SECRETKEY}
+      - Auth__Secretkey=${AUTH__SECRETKEY}
+      - Auth__Expires=${AUTH__EXPIRES}
     depends_on:
       - postgres
       - minio
