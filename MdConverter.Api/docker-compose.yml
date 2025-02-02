@@ -11,11 +11,11 @@ services:
       - "8080:8080"
       - "8081:8081"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Username=postgres;Password=yourpassword;Database=mdconverterdb
-      - Minio__Url=http://minio:9000
-      - Minio__AccessKey=youraccesskey
-      - Minio__SecretKey=yoursecretkey
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=${CONNECTIONSTRINGS__DEFAULTCONNECTION}
+      - Minio__Url=${MINIO__URL}
+      - Minio__AccessKey=${MINIO__ACCESSKEY}
+      - Minio__SecretKey=${MINIO__SECRETKEY}
     depends_on:
       - postgres
       - minio
@@ -40,8 +40,8 @@ services:
     image: minio/minio:latest
     container_name: mdconverter-minio
     environment:
-      - MINIO_ACCESS_KEY=youraccesskey
-      - MINIO_SECRET_KEY=yoursecretkey
+      - MINIO_ACCESS_KEY=${MINIO__ACCESSKEY}
+      - MINIO_SECRET_KEY=${MINIO__SECRETKEY}
     ports:
       - "9000:9000"
     command: server /data
