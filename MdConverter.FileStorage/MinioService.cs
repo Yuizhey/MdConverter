@@ -11,12 +11,24 @@ public class MinioService
 
         public MinioService(IConfiguration configuration)
         {
-            _minioClient = new MinioClient()
-                .WithEndpoint(configuration["MinioSettings:Endpoint"])
-                .WithCredentials(configuration["MinioSettings:AccessKey"], configuration["MinioSettings:SecretKey"])
-                .Build();
+            var endpoint = configuration["MINIO:URL"];
+            var accessKey = configuration["MINIO:ACCESSKEY"];
+            var secretKey = configuration["MINIO:SECRETKEY"];
+            _bucketName = configuration["MINIO:BUCKETNAME"];
 
-            _bucketName = configuration["MinioSettings:BucketName"];
+            if (string.IsNullOrEmpty(endpoint))
+                throw new ArgumentException("MINIO:URL не задан в переменных окружения.");
+            if (string.IsNullOrEmpty(accessKey))
+                throw new ArgumentException("MINIO:ACCESSKEY не задан в переменных окружения.");
+            if (string.IsNullOrEmpty(secretKey))
+                throw new ArgumentException("MINIO:SECRETKEY не задан в переменных окружения.");
+            if (string.IsNullOrEmpty(_bucketName))
+                throw new ArgumentException("MINIO:BUCKETNAME не задан в переменных окружения.");
+
+            _minioClient = new MinioClient()
+                .WithEndpoint(endpoint)
+                .WithCredentials(accessKey, secretKey)
+                .Build();
         }
 
         public async Task<bool> UploadFileAsync(string objectName, Stream fileStream)

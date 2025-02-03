@@ -12,15 +12,17 @@ services:
       - "8081:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - ConnectionStrings__DefaultConnection=${ConnectionStrings__MdConverterDbContext}
+      - ConnectionStrings__MdConverterDbContext=${ConnectionStrings__MdConverterDbContext}
       - Minio__Url=${MINIO__URL}
       - Minio__AccessKey=${MINIO__ACCESSKEY}
       - Minio__SecretKey=${MINIO__SECRETKEY}
+      - Minio__BucketName=${MINIO__BUCKETNAME}
       - Auth__Secretkey=${AUTH__SECRETKEY}
       - Auth__Expires=${AUTH__EXPIRES}
     depends_on:
       - postgres
       - minio
+    command: ["./wait-for-it.sh", "minio:9000", "--", "dotnet", "MdConverterApi.dll"]
     networks:
       - mdconverter-network
 
@@ -42,8 +44,10 @@ services:
     image: minio/minio:latest
     container_name: mdconverter-minio
     environment:
+      - Minio__Url=${MINIO__URL}
       - MINIO_ACCESS_KEY=${MINIO__ACCESSKEY}
       - MINIO_SECRET_KEY=${MINIO__SECRETKEY}
+      - Minio__BucketName=${MINIO__BUCKETNAME}
     ports:
       - "9000:9000"
     command: server /data

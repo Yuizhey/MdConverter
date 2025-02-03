@@ -10,7 +10,14 @@ public static class AuthExtensions
 {
     public static IServiceCollection AddAuth(this IServiceCollection service, IConfiguration configuration)
     {
-        var authSettings = configuration.GetSection("AuthSettings").Get<AuthSettings>();
+        service.Configure<AuthSettings>(configuration.GetSection("AUTH"));
+
+        var authSettings = new AuthSettings
+        {
+            SecretKey = configuration["AUTH:SECRETKEY"]!,
+            Expires = TimeSpan.Parse(configuration["AUTH:EXPIRES"]!)
+        };
+
         service.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o =>
         {
             o.TokenValidationParameters = new TokenValidationParameters
@@ -30,6 +37,7 @@ public static class AuthExtensions
                 }
             };
         });
+
         return service;
     }
 }
